@@ -21,7 +21,7 @@
 
 
 typedef enum state_enum {
-  RESET, RUNNING, STOPPED  
+  SCANNING, READ_INPUT, WRITELCD  
 } state_t;
 
 
@@ -35,16 +35,17 @@ volatile char timer_flag;   /*The timer flag increments every 10ms*/
 int main(void)
 {
     int totalTime = 0;
+    char buttonPress[] = {0, 0, 0};
     timer_flag = 0;
     SYSTEMConfigPerformance(10000000);
     enableInterrupts();
-    myState = RESET;
+    myState = SCANNING;
     initLEDs();
     initTimers();
-    initSW2();
-    initButton();
     initLCD();
+    initKeypad();
     timer_flag = 0;
+    moveCursorLCD(0, 0);
     
     while(1)
     {
@@ -56,29 +57,48 @@ int main(void)
         ** to print to the screen, so we delay to allow the LCD to finish updating the screen. 
         */
         switch(myState) {
-            case RESET:
-                turnOnLED(RED);
-                timer_flag = 0;
-                totalTime = 0;
-                //clearLCD();
-                printTime(0, STOPPED_CONST);
-                delayUs(30000);
+            case SCANNING:
+                LATDbits.LATD12 = LOW_Z;
+                //delayUs(3000);
                 break;
-            case STOPPED:
-                turnOnLED(RED);
-                timer_flag = 0;
-                totalTime += 10*timer_flag;
-                printTime(totalTime, STOPPED_CONST);
-                delayUs(30000);
-                break;
-            case RUNNING:
-                turnOnLED(GREEN);
-                moveCursorLCD(0, 4);
-                if(timer_flag >= 6) {
-                    totalTime += 10*timer_flag;
-                    timer_flag = 0;
-                    printTime(totalTime, RUNNING_CONST);
+            case READ_INPUT:
+                delayUs(3000);
+                if(PORTBbits.RB10 == 0 && buttonPress[0] != 2) {
+                    buttonPress[0] = 1;
                 }
+                if(PORTBbits.RB10 == 0 && buttonPress[0] == 2) {
+                    buttonPress[0] = 0;
+                }
+                if(PORTBbits.RB12 == 0 && buttonPress[1] != 2) {
+                    buttonPress[1] = 1;
+                }
+                if(PORTBbits.RB12 == 0 && buttonPress[1] == 2) {
+                    buttonPress[1] = 0;
+                }
+                if(PORTBbits.RB14 == 0 && buttonPress[2] != 2) {
+                    buttonPress[2] = 1;
+                }
+                if(PORTBbits.RB14 == 0 && buttonPress[2] == 2) {
+                    buttonPress[2] = 0;
+                }
+                //delayUs(500);
+                myState = WRITELCD;
+                break;
+            case WRITELCD:
+                if(buttonPress[0] == 1) {
+                    buttonPress[0] = 2;
+                    printCharLCD('2');
+                }
+                if(buttonPress[1] == 1) {
+                    buttonPress[1] = 2;
+                    printCharLCD('1');
+                }
+                if(buttonPress[2] == 1) {
+                    buttonPress[2] = 2;
+                    printCharLCD('3');
+                }
+                //delayUs(1000);
+                myState = SCANNING;
                 break;
         }
     }
@@ -88,7 +108,6 @@ int main(void)
 
 void __ISR(_TIMER_1_VECTOR, IPL7SRS) timer1Handler(void){
     IFS0bits.T1IF = FLAG_DOWN;
-    timer_flag = timer_flag + 1;    //Increase the 10ms timer count
     TMR1 = 0;
 }
 
@@ -101,10 +120,8 @@ void __ISR(_TIMER_1_VECTOR, IPL7SRS) timer1Handler(void){
 
 void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void){
     //TODO: Implement the interrupt to capture the press of the button
-    PORTD;
-    PORTA;
-    IFS1bits.CNAIF = FLAG_DOWN;
-    IFS1bits.CNDIF = FLAG_DOWN;
+    PORTB;
+    IFS1bits.CNBIF = FLAG_DOWN;
     IFS0bits.T3IF = 0;      //lower timer 2 flag for delay
     TMR3 = 0;  
     PR3 = 10000;//manually clear timer 2 register
@@ -112,37 +129,17 @@ void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void){
     while(IFS0bits.T3IF != 1){};    //5ms delay
     T3CONbits.ON = 0;       //turn off timer 3
     IFS0bits.T3IF = 0;
-    read = PORTAbits.RA7;
-    read_reset = PORTDbits.RD6;
-    if(read == 0 && read_reset != 0){
+    read = PORTBbits.RB12;
+    if(1){
         switch(myState) {
-            case RESET:
-                myState = RUNNING;
-                break;
-            case RUNNING:
-                myState = STOPPED;
-                break;
-            case STOPPED:
-                myState = RUNNING;
+            case SCANNING:
+                myState = READ_INPUT;
                 break;
             default:
                 myState = myState;
                 break;
         }
     } else {
-        myState = myState;
-    }
-    if(read_reset == 0) {
-        switch(myState) {
-            case STOPPED:
-                myState = RESET;
-                break;
-            default:
-                myState = myState;
-                break;
-        }
-    }
-    else {
         myState = myState;
     }
 }
