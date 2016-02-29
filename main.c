@@ -35,7 +35,11 @@ volatile char timer_flag;   /*The timer flag increments every 10ms*/
 int main(void)
 {
     int totalTime = 0;
-    char buttonPress[] = {0, 0, 0};
+    char i = 0;
+    char charToPrint = '1';
+    char row = 0;
+    char charsWritten = 0;
+    char buttonPress[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     timer_flag = 0;
     SYSTEMConfigPerformance(10000000);
     enableInterrupts();
@@ -59,47 +63,144 @@ int main(void)
         switch(myState) {
             case SCANNING:
                 LATDbits.LATD12 = LOW_Z;
-                //delayUs(3000);
+                LATDbits.LATD6 = HI_Z;
+                LATDbits.LATD3 = HI_Z;
+                LATDbits.LATD1 = HI_Z;
+                row = 0;
+                delayUs(3000);
+                LATDbits.LATD12 = HI_Z;
+                LATDbits.LATD6 = LOW_Z;
+                LATDbits.LATD3 = HI_Z;
+                LATDbits.LATD1 = HI_Z;
+                row = 1;
+                delayUs(3000);
+                LATDbits.LATD12 = HI_Z;
+                LATDbits.LATD6 = HI_Z;
+                LATDbits.LATD3 = LOW_Z;
+                LATDbits.LATD1 = HI_Z;
+                row = 2;
+                delayUs(3000);
+                LATDbits.LATD12 = HI_Z;
+                LATDbits.LATD6 = HI_Z;
+                LATDbits.LATD3 = HI_Z;
+                LATDbits.LATD1 = LOW_Z;
+                row = 3;
+                delayUs(3000);
                 break;
             case READ_INPUT:
                 delayUs(3000);
-                if(PORTBbits.RB10 == 0 && buttonPress[0] != 2) {
-                    buttonPress[0] = 1;
+                if(PORTBbits.RB12 == 0 && (buttonPress[1 + (row*3)] != 2)) {   //'1', '4', '7', '*'
+                    buttonPress[1 + row*3] = 1;
                 }
-                if(PORTBbits.RB10 == 0 && buttonPress[0] == 2) {
-                    buttonPress[0] = 0;
+                if(PORTBbits.RB12 == 0 && buttonPress[1 + row*3] == 1) {   //'1', '4', '7', '*'
+                    buttonPress[1 + row*3] = 2;
                 }
-                if(PORTBbits.RB12 == 0 && buttonPress[1] != 2) {
-                    buttonPress[1] = 1;
+                if(PORTBbits.RB10 == 0 && buttonPress[0 + row*3] != 2) {   //'2', '5', '8', '0'
+                    buttonPress[0 + row*3] = 1;
                 }
-                if(PORTBbits.RB12 == 0 && buttonPress[1] == 2) {
-                    buttonPress[1] = 0;
+                if(PORTBbits.RB10 == 0 && buttonPress[0 + row*3] == 1) {   //'2', '5', '8', '0'
+                    buttonPress[0 + row*3] = 2;
                 }
-                if(PORTBbits.RB14 == 0 && buttonPress[2] != 2) {
-                    buttonPress[2] = 1;
+                if(PORTBbits.RB14 == 0 && buttonPress[2 + row*3] != 2) {   //'3', '6', '9', '#'
+                    buttonPress[2 + row*3] = 1;
                 }
-                if(PORTBbits.RB14 == 0 && buttonPress[2] == 2) {
-                    buttonPress[2] = 0;
+                if(PORTBbits.RB14 == 0 && buttonPress[2 + row*3] == 1) {   //'3', '6', '9', '#'
+                    buttonPress[2 + row*3] = 2;
                 }
                 //delayUs(500);
                 myState = WRITELCD;
                 break;
             case WRITELCD:
+                
+                for(i = 0; i < 12; ++i) {
+                    if(buttonPress[i] == 1) {
+                        switch(i) {
+                            case 0:
+                                charToPrint = '2';
+                                break;
+                            case 1:
+                                charToPrint = '1';
+                                break;
+                            case 2:
+                                charToPrint = '3';
+                                break;
+                            case 3:
+                                charToPrint = '5';
+                                break;
+                            case 4:
+                                charToPrint = '4';
+                                break;
+                            case 5:
+                                charToPrint = '6';
+                                break;
+                            case 6:
+                                charToPrint = '8';
+                                break;
+                            case 7:
+                                charToPrint = '7';
+                                break;
+                            case 8:
+                                charToPrint = '9';
+                                break;
+                            case 9:
+                                charToPrint = '0';
+                                break;
+                            case 10:
+                                charToPrint = '*';
+                                break;
+                            case 11:
+                                charToPrint = '#';
+                                break;
+                        }
+                        printCharLCD(charToPrint);
+                        buttonPress[i] = 2;
+                    }
+                    else if(buttonPress[i] == 2) {
+                        
+                    }
+                }
+                /*
                 if(buttonPress[0] == 1) {
-                    buttonPress[0] = 2;
+                    buttonPress[0] = 0;     //'2' on Keypad
                     printCharLCD('2');
+                    charsWritten++;
+                    if(charsWritten == 16) {
+                        moveCursorLCD(1,0);
+                    }
+                    if(charsWritten == 32) {
+                        moveCursorLCD(0,0);
+                        charsWritten = 0;
+                    }
                 }
                 if(buttonPress[1] == 1) {
-                    buttonPress[1] = 2;
+                    buttonPress[1] = 0;     //'1' on Keypad
                     printCharLCD('1');
+                    charsWritten++;
+                    if(charsWritten == 16) {
+                        moveCursorLCD(1,0);
+                    }
+                    if(charsWritten == 32) {
+                        moveCursorLCD(0,0);
+                        charsWritten = 0;
+                    }
                 }
                 if(buttonPress[2] == 1) {
-                    buttonPress[2] = 2;
+                    buttonPress[2] = 0;
                     printCharLCD('3');
+                    charsWritten++;
+                    if(charsWritten == 16) {
+                        moveCursorLCD(1,0);
+                    }
+                    if(charsWritten == 32) {
+                        moveCursorLCD(0,0);
+                        charsWritten = 0;
+                    }
                 }
                 //delayUs(1000);
+                 */
                 myState = SCANNING;
                 break;
+                
         }
     }
     
