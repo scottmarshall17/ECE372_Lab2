@@ -17,6 +17,7 @@
 #include "button.h"
 #include "timer.h"
 #include "lcd.h"
+#include "keypad.h"
 
 
 typedef enum state_enum {
