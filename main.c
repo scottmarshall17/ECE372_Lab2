@@ -145,6 +145,7 @@ int main(void)
                                 charToPrint = '#';
                                 break;
                         }
+                        buttonPress[i] = 0;
                         printCharLCD(charToPrint);
                         charsWritten++;
                         if(charsWritten == 16) {
@@ -155,7 +156,6 @@ int main(void)
                             charsWritten = 0;
                         }
                     }
-                    while(PORTBbits.RB10 == 0 || PORTBbits.RB12 == 0 || PORTBbits.RB14 == 0);
                 }
                 /*
                 if(buttonPress[0] == 1) {
@@ -196,6 +196,8 @@ int main(void)
                 }
                 //delayUs(1000);
                  */
+                
+                while(PORTBbits.RB10 == 0 || PORTBbits.RB12 == 0 || PORTBbits.RB14 == 0);
                 myState = SCANNING;
                 break;
                 
