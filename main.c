@@ -21,7 +21,7 @@
 
 
 typedef enum state_enum {
-  SCANNING, READ_INPUT, WRITELCD  
+  SCANNING_R0, SCANNING_R1, SCANNING_R2, SCANNING_R3, READ_INPUT, WRITELCD  
 } state_t;
 
 
@@ -43,7 +43,7 @@ int main(void)
     timer_flag = 0;
     SYSTEMConfigPerformance(10000000);
     enableInterrupts();
-    myState = SCANNING;
+    myState = SCANNING_R0;
     initLEDs();
     initTimers();
     initLCD();
@@ -61,31 +61,41 @@ int main(void)
         ** to print to the screen, so we delay to allow the LCD to finish updating the screen. 
         */
         switch(myState) {
-            case SCANNING:
+            case SCANNING_R0:
                 LATDbits.LATD12 = LOW_Z;
                 LATDbits.LATD6 = HI_Z;
                 LATDbits.LATD3 = HI_Z;
                 LATDbits.LATD1 = HI_Z;
                 row = 0;
                 delayUs(3000);
+                myState = SCANNING_R1;
+                break;
+            case SCANNING_R1:
                 LATDbits.LATD12 = HI_Z;
                 LATDbits.LATD6 = LOW_Z;
                 LATDbits.LATD3 = HI_Z;
                 LATDbits.LATD1 = HI_Z;
                 row = 1;
                 delayUs(3000);
+                myState = SCANNING_R2;
+                break;
+            case SCANNING_R2:
                 LATDbits.LATD12 = HI_Z;
                 LATDbits.LATD6 = HI_Z;
                 LATDbits.LATD3 = LOW_Z;
                 LATDbits.LATD1 = HI_Z;
                 row = 2;
                 delayUs(3000);
+                myState = SCANNING_R3;
+                break;
+            case SCANNING_R3:
                 LATDbits.LATD12 = HI_Z;
                 LATDbits.LATD6 = HI_Z;
                 LATDbits.LATD3 = HI_Z;
                 LATDbits.LATD1 = LOW_Z;
                 row = 3;
                 delayUs(3000);
+                myState = SCANNING_R0;
                 break;
             case READ_INPUT:
                 delayUs(3000);
@@ -198,7 +208,7 @@ int main(void)
                  */
                 
                 while(PORTBbits.RB10 == 0 || PORTBbits.RB12 == 0 || PORTBbits.RB14 == 0);
-                myState = SCANNING;
+                myState = SCANNING_R0;
                 break;
                 
         }
@@ -233,7 +243,16 @@ void __ISR(_CHANGE_NOTICE_VECTOR, IPL7SRS) _CNInterrupt(void){
     read = PORTBbits.RB12;
     if(1){
         switch(myState) {
-            case SCANNING:
+            case SCANNING_R0:
+                myState = READ_INPUT;
+                break;
+            case SCANNING_R1:
+                myState = READ_INPUT;
+                break;
+            case SCANNING_R2:
+                myState = READ_INPUT;
+                break;
+            case SCANNING_R3:
                 myState = READ_INPUT;
                 break;
             default:
