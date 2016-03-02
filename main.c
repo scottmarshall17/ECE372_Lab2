@@ -63,43 +63,72 @@ int main(void)
         switch(myState) {
             case SCANNING_R0:
                 LATDbits.LATD12 = LOW_Z;
-                LATDbits.LATD6 = HI_Z;
-                LATDbits.LATD3 = HI_Z;
-                LATDbits.LATD1 = HI_Z;
+                LATDbits.LATD6 = LOW_Z;
+                LATDbits.LATD3 = LOW_Z;
+                LATDbits.LATD1 = LOW_Z;
+                
+                TRISDbits.TRISD6 = INPUT;
+                TRISDbits.TRISD3 = INPUT;
+                TRISDbits.TRISD1 = INPUT;
+                TRISDbits.TRISD12 = OUTPUT;
+                
                 row = 0;
                 //delayUs(3000);
                 myState = SCANNING_R1;
-                delayUs(10000);
+                delayUs(SCAN_DELAY);
                 break;
             case SCANNING_R1:
+                /*
                 LATDbits.LATD12 = HI_Z;
                 LATDbits.LATD6 = HI_Z;
                 LATDbits.LATD3 = HI_Z;
                 LATDbits.LATD1 = LOW_Z;
+                */
+                TRISDbits.TRISD12 = INPUT;
+                TRISDbits.TRISD6 = INPUT;
+                TRISDbits.TRISD3 = INPUT;
+                TRISDbits.TRISD1 = OUTPUT;
+                
                 row = 1;
                 //delayUs(3000);
                 myState = SCANNING_R2;
-                delayUs(10000);
+                delayUs(SCAN_DELAY);
                 break;
             case SCANNING_R2:
+                /*
                 LATDbits.LATD12 = HI_Z;
                 LATDbits.LATD6 = HI_Z;
                 LATDbits.LATD3 = LOW_Z;
                 LATDbits.LATD1 = HI_Z;
+                */
+                
+                TRISDbits.TRISD12 = INPUT;
+                TRISDbits.TRISD6 = INPUT;
+                TRISDbits.TRISD1 = INPUT;
+                TRISDbits.TRISD3 = OUTPUT;
+                
                 row = 2;
                 //delayUs(3000);
                 myState = SCANNING_R3;
-                delayUs(10000);
+                delayUs(SCAN_DELAY);
                 break;
             case SCANNING_R3:
+                /*
                 LATDbits.LATD12 = HI_Z;
                 LATDbits.LATD6 = LOW_Z;
                 LATDbits.LATD3 = HI_Z;
                 LATDbits.LATD1 = HI_Z;
+                */
+                
+                TRISDbits.TRISD12 = INPUT;
+                TRISDbits.TRISD3 = INPUT;
+                TRISDbits.TRISD1 = INPUT;
+                TRISDbits.TRISD6 = OUTPUT;
+                
                 row = 3;
                 //delayUs(3000);
                 myState = SCANNING_R0;
-                delayUs(10000);
+                delayUs(SCAN_DELAY);
                 break;
             case READ_INPUT:
                 delayUs(3000);
