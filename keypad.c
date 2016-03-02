@@ -42,7 +42,6 @@ void initKeypad(void) {
     LATDbits.LATD1 = HI_Z;
     
     //Configure inputs for change notification interrupts
-    CNCONBbits.ON = ENABLED;
     
     CNENBbits.CNIEB10 = ENABLED;       // Enable interrupt for button
     CNPUBbits.CNPUB10 = ENABLED;        // Enable Internal Pull-up resistor
@@ -51,9 +50,12 @@ void initKeypad(void) {
     CNENBbits.CNIEB14 = ENABLED;       // Enable interrupt for button
     CNPUBbits.CNPUB14 = ENABLED;        // Enable Internal Pull-up resistor
     
+    
     IPC8bits.CNIP = 7; //CHANGED THIS!!!!
     IFS1bits.CNBIF = 0;         // Put Interrupt flag down
     IEC1bits.CNBIE = 1;         // Enable overall CN Interrupt
+    CNCONBbits.ON = ENABLED;
+    
     
     
     return;

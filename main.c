@@ -67,17 +67,19 @@ int main(void)
                 LATDbits.LATD3 = HI_Z;
                 LATDbits.LATD1 = HI_Z;
                 row = 0;
-                delayUs(3000);
+                //delayUs(3000);
                 myState = SCANNING_R1;
+                delayUs(10000);
                 break;
             case SCANNING_R1:
                 LATDbits.LATD12 = HI_Z;
-                LATDbits.LATD6 = LOW_Z;
+                LATDbits.LATD6 = HI_Z;
                 LATDbits.LATD3 = HI_Z;
-                LATDbits.LATD1 = HI_Z;
+                LATDbits.LATD1 = LOW_Z;
                 row = 1;
-                delayUs(3000);
+                //delayUs(3000);
                 myState = SCANNING_R2;
+                delayUs(10000);
                 break;
             case SCANNING_R2:
                 LATDbits.LATD12 = HI_Z;
@@ -85,36 +87,39 @@ int main(void)
                 LATDbits.LATD3 = LOW_Z;
                 LATDbits.LATD1 = HI_Z;
                 row = 2;
-                delayUs(3000);
+                //delayUs(3000);
                 myState = SCANNING_R3;
+                delayUs(10000);
                 break;
             case SCANNING_R3:
                 LATDbits.LATD12 = HI_Z;
-                LATDbits.LATD6 = HI_Z;
+                LATDbits.LATD6 = LOW_Z;
                 LATDbits.LATD3 = HI_Z;
-                LATDbits.LATD1 = LOW_Z;
+                LATDbits.LATD1 = HI_Z;
                 row = 3;
-                delayUs(3000);
+                //delayUs(3000);
                 myState = SCANNING_R0;
+                delayUs(10000);
                 break;
             case READ_INPUT:
                 delayUs(3000);
-                if(PORTBbits.RB12 == 0 && (buttonPress[1 + (row*3)] != 2)) {   //'1', '4', '7', '*'
-                    buttonPress[1 + row*3] = 1;
+                if(PORTBbits.RB12 == 0) {   //'1', '4', '7', '*'
+                    buttonPress[1 + (row*3)] = 1;
                 }
                 
-                if(PORTBbits.RB10 == 0 && buttonPress[0 + row*3] != 2) {   //'2', '5', '8', '0'
-                    buttonPress[0 + row*3] = 1;
+                if(PORTBbits.RB10 == 0) {   //'2', '5', '8', '0'
+                    buttonPress[0 + (row*3)] = 1;
                 }
                 
-                if(PORTBbits.RB14 == 0 && buttonPress[2 + row*3] != 2) {   //'3', '6', '9', '#'
-                    buttonPress[2 + row*3] = 1;
+                if(PORTBbits.RB14 == 0) {   //'3', '6', '9', '#'
+                    buttonPress[2 + (row*3)] = 1;
                 }
                 //delayUs(500);
                 myState = WRITELCD;
+                delayUs(1000);
                 break;
             case WRITELCD:
-                
+                i = 0;
                 for(i = 0; i < 12; ++i) {
                     if(buttonPress[i] == 1) {
                         switch(i) {
