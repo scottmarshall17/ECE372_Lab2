@@ -92,20 +92,13 @@ int main(void)
                 if(PORTBbits.RB12 == 0 && (buttonPress[1 + (row*3)] != 2)) {   //'1', '4', '7', '*'
                     buttonPress[1 + row*3] = 1;
                 }
-                if(PORTBbits.RB12 == 0 && buttonPress[1 + row*3] == 1) {   //'1', '4', '7', '*'
-                    buttonPress[1 + row*3] = 2;
-                }
+                
                 if(PORTBbits.RB10 == 0 && buttonPress[0 + row*3] != 2) {   //'2', '5', '8', '0'
                     buttonPress[0 + row*3] = 1;
                 }
-                if(PORTBbits.RB10 == 0 && buttonPress[0 + row*3] == 1) {   //'2', '5', '8', '0'
-                    buttonPress[0 + row*3] = 2;
-                }
+                
                 if(PORTBbits.RB14 == 0 && buttonPress[2 + row*3] != 2) {   //'3', '6', '9', '#'
                     buttonPress[2 + row*3] = 1;
-                }
-                if(PORTBbits.RB14 == 0 && buttonPress[2 + row*3] == 1) {   //'3', '6', '9', '#'
-                    buttonPress[2 + row*3] = 2;
                 }
                 //delayUs(500);
                 myState = WRITELCD;
@@ -153,11 +146,16 @@ int main(void)
                                 break;
                         }
                         printCharLCD(charToPrint);
-                        buttonPress[i] = 2;
+                        charsWritten++;
+                        if(charsWritten == 16) {
+                            moveCursorLCD(1,0);
+                        }
+                        if(charsWritten == 32) {
+                            moveCursorLCD(0,0);
+                            charsWritten = 0;
+                        }
                     }
-                    else if(buttonPress[i] == 2) {
-                        
-                    }
+                    while(PORTBbits.RB10 == 0 || PORTBbits.RB12 == 0 || PORTBbits.RB14 == 0);
                 }
                 /*
                 if(buttonPress[0] == 1) {
