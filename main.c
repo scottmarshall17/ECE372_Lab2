@@ -228,7 +228,7 @@ int main(void)
                     }
                 }
                 if(setPassVar == 1 && validChars == 1) {
-                    myState = STORE_PASS;
+                    myState = VALID;
                     break;
                 }
                 if(match != 4) {
@@ -241,7 +241,12 @@ int main(void)
             case VALID:
                 clearLCD();
                 moveCursorLCD(0, 5);
-                printStringLCD("VALID");
+                if(setPassVar == 1) {
+                    printStringLCD("VALID");
+                } else {
+                    moveCursorLCD(0, 6);
+                    printStringLCD("GOOD");
+                }
                 for(j = 0; j < 500; j++) {
                     delayUs(4000);
                 }
@@ -257,7 +262,13 @@ int main(void)
             case INVALID:
                 clearLCD();
                 moveCursorLCD(0, 4);
-                printStringLCD("INVALID");
+                if(setPassVar == 1) {
+                    printStringLCD("INVALID");
+                } else {
+                    moveCursorLCD(0, 7);
+                    printStringLCD("BAD");
+                }
+                
                 for(j = 0; j < 500; j++) {
                     delayUs(4000);
                 }
@@ -274,7 +285,7 @@ int main(void)
                 clearLCD();
                 moveCursorLCD(0, 2);
                 printStringLCD("SET PASSWORD");
-                moveCursorLCD(1, 4);
+                moveCursorLCD(1, 5);
                 setPassVar = 1;
                 myState = SCANNING_R0;
                 break;
@@ -287,7 +298,7 @@ int main(void)
                 passIndex++;
                 passIndex = passIndex == 4 ? 0:passIndex;
                 charNum = 0;
-                myState = VALID;
+                myState = ENTER_PHASE;
                 break;
         }
     }
