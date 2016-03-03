@@ -51,7 +51,7 @@ void initKeypad(void) {
     CNPUBbits.CNPUB14 = ENABLED;        // Enable Internal Pull-up resistor
     
     
-    IPC8bits.CNIP = 7; //CHANGED THIS!!!!
+    IPC8bits.CNIP = 7;          //CHANGED THIS!!!!
     IFS1bits.CNBIF = 0;         // Put Interrupt flag down
     IEC1bits.CNBIE = 1;         // Enable overall CN Interrupt
     CNCONBbits.ON = ENABLED;

@@ -26,7 +26,7 @@
 #define RUNNING_CONST 1
 #define STOPPED_CONST 0
 #define PS_64_A 2
-#define SCAN_DELAY 10000
+#define SCAN_DELAY 1000
 
 #ifdef	__cplusplus
 extern "C" {

@@ -21,7 +21,8 @@
 
 
 typedef enum state_enum {
-  SCANNING_R0, SCANNING_R1, SCANNING_R2, SCANNING_R3, READ_INPUT, WRITELCD  
+  ENTER_PHASE, SCANNING_R0, SCANNING_R1, SCANNING_R2, SCANNING_R3, READ_INPUT, WRITELCD, PASS_CHECK,
+          VALID, INVALID, SET_PASS, STORE_PASS
 } state_t;
 
 
@@ -29,38 +30,48 @@ volatile state_t myState;
 volatile int read;
 volatile int read_reset;    /*integer to store value of the reset button*/
 volatile char timer_flag;   /*The timer flag increments every 10ms*/
+volatile char charNum;
 /* Please note that the configuration file has changed from lab 0.
  * the oscillator is now of a different frequency.
  */
 int main(void)
 {
     int totalTime = 0;
+    char validChars = 1;
+    char passIndex = 0;
+    char setPassVar = 0;
     char i = 0;
+    int j = 0;
+    int k = 0;
+    char match = 0;
     char charToPrint = '1';
     char row = 0;
     char charsWritten = 0;
     char buttonPress[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    char password[4] = {0, 0, 0, 0};
+    char dataBase[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 3, 0, 8};   //8529 code
     timer_flag = 0;
     SYSTEMConfigPerformance(10000000);
     enableInterrupts();
-    myState = SCANNING_R0;
+    myState = ENTER_PHASE;
     initLEDs();
     initTimers();
     initLCD();
     initKeypad();
     timer_flag = 0;
     moveCursorLCD(0, 0);
+    charNum = 0;
     
     while(1)
     {
-        /* 
-        ** This stopwatch functions using a timer set with a period of 10ms. Every 10ms the 
-        ** interrupt triggers and the timer_flag variable increments. After a certain amount of time
-        ** based on the state, the total_time is increased by 10ms*timer_flag value. This value is
-        ** Then printed to the LCD. FAQ: Why the delays? A: The screen takes a non-zero amount of time
-        ** to print to the screen, so we delay to allow the LCD to finish updating the screen. 
-        */
         switch(myState) {
+            case ENTER_PHASE:
+                clearLCD();
+                moveCursorLCD(0, 5);
+                printStringLCD("ENTER:");
+                moveCursorLCD(1, 5);
+                myState = SCANNING_R0;
+                break;
             case SCANNING_R0:
                 LATDbits.LATD12 = LOW_Z;
                 LATDbits.LATD6 = LOW_Z;
@@ -78,12 +89,6 @@ int main(void)
                 delayUs(SCAN_DELAY);
                 break;
             case SCANNING_R1:
-                /*
-                LATDbits.LATD12 = HI_Z;
-                LATDbits.LATD6 = HI_Z;
-                LATDbits.LATD3 = HI_Z;
-                LATDbits.LATD1 = LOW_Z;
-                */
                 TRISDbits.TRISD12 = INPUT;
                 TRISDbits.TRISD6 = INPUT;
                 TRISDbits.TRISD3 = INPUT;
@@ -95,13 +100,6 @@ int main(void)
                 delayUs(SCAN_DELAY);
                 break;
             case SCANNING_R2:
-                /*
-                LATDbits.LATD12 = HI_Z;
-                LATDbits.LATD6 = HI_Z;
-                LATDbits.LATD3 = LOW_Z;
-                LATDbits.LATD1 = HI_Z;
-                */
-                
                 TRISDbits.TRISD12 = INPUT;
                 TRISDbits.TRISD6 = INPUT;
                 TRISDbits.TRISD1 = INPUT;
@@ -113,12 +111,6 @@ int main(void)
                 delayUs(SCAN_DELAY);
                 break;
             case SCANNING_R3:
-                /*
-                LATDbits.LATD12 = HI_Z;
-                LATDbits.LATD6 = LOW_Z;
-                LATDbits.LATD3 = HI_Z;
-                LATDbits.LATD1 = HI_Z;
-                */
                 
                 TRISDbits.TRISD12 = INPUT;
                 TRISDbits.TRISD3 = INPUT;
@@ -190,61 +182,113 @@ int main(void)
                                 break;
                         }
                         buttonPress[i] = 0;
+                        password[charNum] = i;
+                        charNum++;
                         printCharLCD(charToPrint);
                         charsWritten++;
-                        if(charsWritten == 16) {
-                            moveCursorLCD(1,0);
-                        }
-                        if(charsWritten == 32) {
-                            moveCursorLCD(0,0);
-                            charsWritten = 0;
-                        }
                     }
                 }
-                /*
-                if(buttonPress[0] == 1) {
-                    buttonPress[0] = 0;     //'2' on Keypad
-                    printCharLCD('2');
-                    charsWritten++;
-                    if(charsWritten == 16) {
-                        moveCursorLCD(1,0);
-                    }
-                    if(charsWritten == 32) {
-                        moveCursorLCD(0,0);
-                        charsWritten = 0;
-                    }
-                }
-                if(buttonPress[1] == 1) {
-                    buttonPress[1] = 0;     //'1' on Keypad
-                    printCharLCD('1');
-                    charsWritten++;
-                    if(charsWritten == 16) {
-                        moveCursorLCD(1,0);
-                    }
-                    if(charsWritten == 32) {
-                        moveCursorLCD(0,0);
-                        charsWritten = 0;
-                    }
-                }
-                if(buttonPress[2] == 1) {
-                    buttonPress[2] = 0;
-                    printCharLCD('3');
-                    charsWritten++;
-                    if(charsWritten == 16) {
-                        moveCursorLCD(1,0);
-                    }
-                    if(charsWritten == 32) {
-                        moveCursorLCD(0,0);
-                        charsWritten = 0;
-                    }
-                }
-                //delayUs(1000);
-                 */
+                
                 
                 while(PORTBbits.RB10 == 0 || PORTBbits.RB12 == 0 || PORTBbits.RB14 == 0);
+                if(charNum == 2 && password[0] == 10 && password[1] == 10) {
+                    myState = SET_PASS;
+                    charNum = 0;
+                    break;
+                }
+                if(charNum < 4) {
+                    myState = SCANNING_R0;
+                }
+                else {
+                    myState = PASS_CHECK;
+                }
+                
+                break;
+            case PASS_CHECK:
+                charNum = 0;
+                charsWritten = 0;
+                j = 0;
+                k = 0;
+                             
+                for(j = 0; j < 4; ++j) {
+                    match = 0;
+                    for(k = 0; k < 4; ++k) {
+                        if(dataBase[(4*j) + k] == password[k]) {
+                            match = match + 1;
+                        }
+                    }
+                    if(password[j] == 10 || password[j] == 11) {
+                        myState = INVALID;
+                        validChars = 0;
+                        break;
+                    }
+                    if(match == 4) {
+                        myState = VALID;
+                        break;
+                    }
+                }
+                if(setPassVar == 1 && validChars == 1) {
+                    myState = STORE_PASS;
+                    break;
+                }
+                if(match != 4) {
+                    validChars = 1;
+                   myState = INVALID; 
+                }
+                
+                break;
+                
+            case VALID:
+                clearLCD();
+                moveCursorLCD(0, 5);
+                printStringLCD("VALID");
+                for(j = 0; j < 500; j++) {
+                    delayUs(4000);
+                }
+                if(setPassVar == 1) {
+                    myState = STORE_PASS;
+                }
+                else {
+                    myState = ENTER_PHASE;
+                }
+                
+                break;
+                
+            case INVALID:
+                clearLCD();
+                moveCursorLCD(0, 4);
+                printStringLCD("INVALID");
+                for(j = 0; j < 500; j++) {
+                    delayUs(4000);
+                }
+                if(setPassVar == 1) {
+                    setPassVar = 0;
+                    myState = ENTER_PHASE;
+                }
+                else {
+                    myState = ENTER_PHASE;
+                }
+                break;
+                
+            case SET_PASS:
+                clearLCD();
+                moveCursorLCD(0, 2);
+                printStringLCD("SET PASSWORD");
+                moveCursorLCD(1, 4);
+                setPassVar = 1;
                 myState = SCANNING_R0;
                 break;
                 
+            case STORE_PASS:
+                setPassVar = 0;
+                for(k = 0; k < 4; ++k) {
+                    dataBase[passIndex*4 + k] = password[k];
+                }
+                passIndex++;
+                passIndex = passIndex == 4 ? 0:passIndex;
+                charNum = 0;
+                myState = VALID;
+                break;
         }
     }
     
