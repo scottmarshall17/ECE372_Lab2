@@ -176,9 +176,18 @@ int main(void)
                                 break;
                             case 10:
                                 charToPrint = '*';
+                                if(charNum == 0) {
+                                    charToPrint = '*';
+                                }
+                                else if(charNum < 0 && password[0] != 10) {
+                                    myState = INVALID;
+                                    charToPrint = ' ';
+                                }
                                 break;
                             case 11:
-                                charToPrint = '#';
+                                //charToPrint = '#';
+                                charToPrint = ' ';
+                                myState = INVALID;
                                 break;
                         }
                         buttonPress[i] = 0;
@@ -191,6 +200,10 @@ int main(void)
                 
                 
                 while(PORTBbits.RB10 == 0 || PORTBbits.RB12 == 0 || PORTBbits.RB14 == 0);
+                if(myState == INVALID) {
+                    charNum = 0;
+                    break;
+                }
                 if(charNum == 2 && password[0] == 10 && password[1] == 10) {
                     myState = SET_PASS;
                     charNum = 0;
@@ -202,7 +215,6 @@ int main(void)
                 else {
                     myState = PASS_CHECK;
                 }
-                
                 break;
             case PASS_CHECK:
                 charNum = 0;
